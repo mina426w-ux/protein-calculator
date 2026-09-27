@@ -5,12 +5,12 @@
 - 名称：`mina426w-ux/protein-calculator`
 - 地址：`https://github.com/mina426w-ux/protein-calculator`
 - 默认分支：`main`
-- 当前可见性：`PRIVATE`
+- 当前可见性：`PUBLIC`
 
 ## 固定测试网址
 
-- 预定地址：`https://mina426w-ux.github.io/protein-calculator/`
-- 当前状态：尚未发布。GitHub API 返回 HTTP 422，当前账户套餐不支持私有仓库 GitHub Pages。
+- 固定地址：`https://mina426w-ux.github.io/protein-calculator/`
+- 当前状态：已发布，强制 HTTPS；由 GitHub Pages 提供公网访问。
 
 ## 部署方式
 
@@ -18,7 +18,7 @@
 
 ## 如何更新
 
-Pages 权限问题解决后，在现有项目提交并推送到 `main`，同一 Workflow 会更新同一固定网址；不需要手工上传 `dist`。
+在现有项目提交并推送到 `main`，同一 Workflow 会更新同一固定网址；不需要手工上传 `dist`。
 
 ## 如何验证
 
@@ -30,4 +30,4 @@ Pages 权限问题解决后，在现有项目提交并推送到 `main`，同一 
 
 ## Pages 失败时检查
 
-先检查仓库 Settings → Pages 是否能选择 GitHub Actions，再检查账户套餐是否允许私有仓库 Pages，最后查看 `.github/workflows/deploy-pages.yml` 的失败步骤。当前已确认的唯一阻塞是私有仓库 Pages 套餐权限。
+先检查仓库 Settings → Pages 的发布源是否为 GitHub Actions，再检查 Actions 中的类型检查、测试、构建、artifact 和 deploy 步骤，最后确认 `vite.config.ts` 的 `/protein-calculator/` 子路径配置。

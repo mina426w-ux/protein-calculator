@@ -42,6 +42,10 @@ const customNotes = ref('')
 
 const navigationCategories = ['常用', ...FOOD_CATEGORIES, '我的食品']
 const customUnits = ['g', 'mL', '个', '根', '份', '盒', '杯', '勺']
+const resolveAssetPath = (path: string) => {
+  if (/^(?:data:|blob:|https?:\/\/)/i.test(path)) return path
+  return `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
+}
 const summary = computed(() => calculateSummary(day.value.target, day.value.entries))
 const selectedFood = computed(() => catalog.value.find((food) => food.id === selectedFoodId.value))
 const customFoods = computed(() => catalog.value.filter((food) => food.isCustom))
@@ -296,14 +300,14 @@ onLoad(refresh)
       <view class="result-heading"><text>{{ categoryFilter }}</text><text>{{ filteredFoods.length }} 项</text></view>
       <view v-if="!filteredFoods.length" class="card empty">没有匹配食品，可到“我的食品”按包装创建。</view>
       <view v-for="food in filteredFoods" :key="food.id" class="food-card" :data-food-name="food.name" @click="openFood(food)">
-        <image class="food-icon" :src="food.imageLocalPath" mode="aspectFit" />
+        <image class="food-icon" :src="resolveAssetPath(food.imageLocalPath)" mode="aspectFit" />
         <view class="food-card-main"><view class="name-line"><text class="item-name">{{ food.name }}</text><text v-if="food.userModified" class="mine-badge">我的数值</text><text v-if="food.isCustom" class="custom-badge">自定义</text></view><text class="item-detail">{{ food.state }} · {{ food.effectiveProtein }}g / {{ food.baseAmount }}{{ food.baseUnit }}</text><text class="source-short">{{ food.isSystem ? `USDA FDC ${food.sourceId}` : '按包装录入' }}</text></view>
         <button class="favorite-button" :class="{ on: food.favorite }" size="mini" @click.stop="toggleFavorite(food)">{{ food.favorite ? '★' : '☆' }}</button>
       </view>
 
       <view v-if="selectedFood" id="food-detail" class="detail-sheet">
         <view class="detail-handle" />
-        <view class="detail-title-row"><view class="row"><image class="detail-icon" :src="selectedFood.imageLocalPath" /><view><text class="detail-title">{{ selectedFood.name }}</text><text class="item-detail">{{ selectedFood.state }} · {{ selectedFood.category }}</text></view></view><button class="close-button" size="mini" @click="closeFood">×</button></view>
+        <view class="detail-title-row"><view class="row"><image class="detail-icon" :src="resolveAssetPath(selectedFood.imageLocalPath)" /><view><text class="detail-title">{{ selectedFood.name }}</text><text class="item-detail">{{ selectedFood.state }} · {{ selectedFood.category }}</text></view></view><button class="close-button" size="mini" @click="closeFood">×</button></view>
         <view class="reference-grid">
           <view><text class="reference-label">系统参考值</text><text id="system-reference-value" class="reference-value">{{ selectedFood.systemProtein }}g / {{ selectedFood.baseAmount }}{{ selectedFood.baseUnit }}</text></view>
           <view><text class="reference-label">我的数值</text><text id="my-reference-value" class="reference-value mine">{{ selectedFood.userModified ? `${selectedFood.userProtein}g` : '未设置' }}</text></view>
