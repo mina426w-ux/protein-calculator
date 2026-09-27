@@ -152,7 +152,10 @@ function showNotice(message: string, kind: 'success' | 'error' = 'success') {
 
 function loadProfileForm(value?: HealthProfile) {
   if (!value) {
-    const hasLegacyData = Object.keys(appState.value.days).length > 0 || appState.value.foods.length > 0
+    const hasLegacyData = Object.values(appState.value.days).some((day) => day.entries.length > 0)
+      || appState.value.foods.length > 0
+      || Object.keys(appState.value.systemOverrides).length > 0
+      || appState.value.lastTarget !== 70
     if (hasLegacyData) { proteinMode.value = 'doctor'; doctorProteinTarget.value = String(appState.value.lastTarget) }
     profileFormLoaded.value = true
     return

@@ -8,7 +8,8 @@
     "build:h5": "uni build",
     "type-check": "vue-tsc --noEmit",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:public": "playwright test --config playwright.public.config.ts"
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-alpha-5020720260921001",
