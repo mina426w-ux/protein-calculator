@@ -23,6 +23,8 @@ export interface SystemFoodRecord {
   baseUnit: string
   systemProtein: number
   sourceProteinPer100g: number
+  systemCalories: number | null
+  sourceCaloriesPer100g: number | null
   sourceName: string
   sourceId: string
   sourceDataType: string

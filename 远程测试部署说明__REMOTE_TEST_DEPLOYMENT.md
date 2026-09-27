@@ -14,7 +14,7 @@
 
 ## 部署方式
 
-推送 `main` 后，由 `.github/workflows/deploy-pages.yml` 自动执行类型检查、单元测试、H5 构建并尝试发布 GitHub Pages。H5 使用 `/protein-calculator/` 固定子路径。
+推送 `main` 后，由 `.github/workflows/deploy-pages.yml` 自动执行类型检查、单元测试、H5 构建并发布 GitHub Pages。H5 使用 `/protein-calculator/` 固定子路径；V2 继续沿用同一仓库和网址。
 
 ## 如何更新
 
@@ -26,7 +26,7 @@
 
 ## 数据边界
 
-数据只保存在各浏览器的本地存储中，不跨设备同步。Windows、Mac、iPhone 和 iPad 各自拥有独立数据；本任务不增加账号、后端或云数据库。
+资料、体重和饮食数据只保存在各浏览器的本地存储中，不跨设备同步。Windows、Mac、iPhone 和 iPad 各自拥有独立数据；本项目没有账号、后端、云数据库或统计上报。
 
 ## Pages 失败时检查
 

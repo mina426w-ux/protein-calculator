@@ -29,7 +29,7 @@ describe('第二阶段系统食品库', () => {
     }
   })
 
-  it('所有食品都有中文名、英文记录、状态、基准和蛋白质', () => {
+  it('所有食品都有中文名、英文记录、状态、基准、蛋白质和 USDA 热量', () => {
     for (const food of SYSTEM_FOODS) {
       expect(food.name.length).toBeGreaterThan(0)
       expect(food.nameEn.length).toBeGreaterThan(0)
@@ -37,6 +37,7 @@ describe('第二阶段系统食品库', () => {
       expect(food.baseAmount).toBeGreaterThan(0)
       expect(food.baseUnit.length).toBeGreaterThan(0)
       expect(food.systemProtein).toBeGreaterThan(0)
+      expect(food.systemCalories).toBeGreaterThan(0)
     }
   })
 
@@ -128,7 +129,7 @@ describe('第二阶段计算、覆盖、自定义与快照', () => {
     expect(store.getFood(milkId)).toMatchObject({ effectiveProtein: 3.15, userModified: false })
   })
 
-  it('v1 自定义食品与历史记录可迁移到 v2 且不会丢失', () => {
+  it('v1 自定义食品与历史记录可迁移到 v3 且不会丢失', () => {
     const migrated = normalizeState({
       version: 1,
       lastTarget: 70,
@@ -141,9 +142,10 @@ describe('第二阶段计算、覆盖、自定义与快照', () => {
         },
       },
     })
-    expect(migrated.version).toBe(2)
+    expect(migrated.version).toBe(3)
     expect(migrated.foods[0]).toMatchObject({ name: '旧食品', baseAmount: 1, baseUnit: '份', systemProtein: 6 })
     expect(migrated.days[date].entries[0]).toMatchObject({ protein: 12, snapshotProteinAmount: 6 })
+    expect(migrated.days[date].entries[0].calories).toBeNull()
   })
 
   it('系统覆盖、自定义食品、收藏、最近使用和历史都写入同一本地键', () => {

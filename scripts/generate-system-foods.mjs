@@ -36,6 +36,7 @@ const s = (id, nameZh, category, state, description, options = {}) => ({
   baseAmount: options.baseAmount ?? 100,
   baseUnit: options.baseUnit ?? 'g',
   proteinOverride: options.proteinOverride,
+  calorieOverride: options.calorieOverride,
   notes: options.notes ?? '',
   expectedFdcId: options.expectedFdcId,
 })
@@ -85,7 +86,7 @@ const specs = [
 
   // 蛋类（10）
   s('egg-whole-boiled', '鸡蛋（整只）', C.eggs, '水煮', `Egg, whole, cooked, hard-boiled`, { expectedFdcId: 173424 }),
-  s('egg-whole-boiled-piece', '鸡蛋（水煮，单个估算）', C.eggs, '水煮', `Egg, whole, cooked, hard-boiled`, { expectedFdcId: 173424, baseAmount: 1, baseUnit: '个', proteinOverride: 6.3, notes: '按可食部分约50g/个估算；鸡蛋大小会影响结果，可改用克数条目或修改参考值。' }),
+  s('egg-whole-boiled-piece', '鸡蛋（水煮，单个估算）', C.eggs, '水煮', `Egg, whole, cooked, hard-boiled`, { expectedFdcId: 173424, baseAmount: 1, baseUnit: '个', proteinOverride: 6.3, calorieOverride: 77.5, notes: '按可食部分约50g/个估算；鸡蛋大小会影响结果，可改用克数条目或修改参考值。' }),
   s('egg-whole-raw', '鸡蛋（整只）', C.eggs, '生', `Egg, whole, raw, fresh`, { expectedFdcId: 171287 }),
   s('egg-whole-fried', '煎鸡蛋', C.eggs, '熟／煎', `Egg, whole, cooked, fried`, { expectedFdcId: 173423 }),
   s('egg-whole-scrambled', '炒鸡蛋', C.eggs, '熟／炒', `Egg, whole, cooked, scrambled`, { expectedFdcId: 172187 }),
@@ -174,7 +175,9 @@ const foods = specs.map((spec) => {
   }
   const nutrient = food.foodNutrients.find((item) => item.nutrient?.id === 1003)
   if (!nutrient || !Number.isFinite(nutrient.amount)) throw new Error(`蛋白质数据UNKNOWN：${spec.description}`)
+  const energyNutrient = food.foodNutrients.find((item) => item.nutrient?.id === 1008)
   const protein = spec.proteinOverride ?? nutrient.amount
+  const calories = spec.calorieOverride ?? (Number.isFinite(energyNutrient?.amount) ? energyNutrient.amount : null)
   return {
     id: `system-${spec.id}`,
     stableKey: spec.id,
@@ -186,6 +189,8 @@ const foods = specs.map((spec) => {
     baseUnit: spec.baseUnit,
     systemProtein: protein,
     sourceProteinPer100g: nutrient.amount,
+    systemCalories: calories,
+    sourceCaloriesPer100g: Number.isFinite(energyNutrient?.amount) ? energyNutrient.amount : null,
     sourceName: 'USDA FoodData Central – SR Legacy',
     sourceId: String(food.fdcId),
     sourceDataType: food.dataType,
@@ -213,6 +218,7 @@ const report = {
   foodCount: foods.length,
   categoryCounts: Object.fromEntries(Object.values(C).map((category) => [category, foods.filter((food) => food.category === category).length])),
   unknownProteinCount: foods.filter((food) => !Number.isFinite(food.systemProtein)).length,
+  unknownCaloriesCount: foods.filter((food) => !Number.isFinite(food.systemCalories)).length,
   derivedEntries: foods.filter((food) => food.systemProtein !== food.sourceProteinPer100g).map((food) => food.id),
 }
 

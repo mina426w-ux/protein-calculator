@@ -1,57 +1,82 @@
 import { expect, test, type Page } from '@playwright/test'
 import path from 'node:path'
 
-const testDate = '2026-09-27'
-
 async function fillUniInput(page: Page, id: string, value: string) {
-  await page.locator(`${id} input`).fill(value)
+  await page.locator(`${id} input`).fill(value, { force: true })
 }
 
-async function setDate(page: Page, value: string) {
-  await fillUniInput(page, '#date-input', value)
-  await page.locator('#apply-date').click()
+async function setupProfile(page: Page) {
+  await fillUniInput(page, '#profile-age', '35')
+  await fillUniInput(page, '#profile-height', '180')
+  await fillUniInput(page, '#profile-weight', '82.4')
+  await fillUniInput(page, '#profile-target-weight', '75')
+  await page.locator('#activity-moderate').click()
+  await page.locator('#goal-lose').click()
+  await page.locator('#deficit-500').click()
+  await page.locator('#protein-current').click()
+  await page.locator('#save-profile').click()
+  await expect(page.locator('#current-weight')).toHaveText('82.4 kg')
 }
 
-async function createCustom(page: Page, name: string, base: string, unit: string, protein: string) {
-  await page.locator('#tab-custom').click()
-  await fillUniInput(page, '#custom-name', name)
-  await fillUniInput(page, '#custom-base', base)
-  await page.locator(`#custom-unit-${unit}`).click()
-  await fillUniInput(page, '#custom-protein', protein)
-  await page.locator('#save-custom').click()
-  await expect(page.locator(`[data-custom-name="${name}"]`)).toBeVisible()
-}
+test('V2 新用户完整闭环：资料、目标、食物、体重、完成、刷新与趋势', async ({ page }) => {
+  const consoleErrors: string[] = []
+  const pageErrors: string[] = []
+  const failedResponses: string[] = []
+  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(`${message.text()} @ ${message.location().url}`) })
+  page.on('pageerror', (error) => pageErrors.push(error.message))
+  page.on('response', (response) => { if (response.status() >= 400) failedResponses.push(`${response.status()} ${response.url()}`) })
 
-async function addBySearch(page: Page, name: string, quantity: string) {
-  await page.locator('#tab-foods').click()
-  await fillUniInput(page, '#search-input', name)
-  await page.locator(`[data-food-name="${name}"]`).click()
-  await fillUniInput(page, '#food-quantity', quantity)
-  await page.locator('#add-selected-food').click()
-  await page.locator('.close-button').click()
-}
-
-test('第一阶段 70g / 22g / 48g 回归与持久化', async ({ page }) => {
   await page.goto('/')
   await page.evaluate(() => localStorage.clear())
   await page.reload()
-  await setDate(page, testDate)
-  await fillUniInput(page, '#goal-input', '70')
-  await page.locator('#save-goal').click()
 
-  await createCustom(page, '测试食物 A', '1', '份', '6')
-  await createCustom(page, '测试食物 B', '1', '份', '10')
-  await addBySearch(page, '测试食物 A', '2')
-  await addBySearch(page, '测试食物 B', '1')
-  await page.locator('#tab-today').click()
-  await expect(page.locator('#consumed-value')).toHaveText('22g')
-  await expect(page.locator('#remaining-value')).toHaveText('48g')
-  await expect(page.locator('#target-value')).toHaveText('70g')
+  await test.step('首次资料计算成人减重目标', async () => {
+    await setupProfile(page)
+    await page.locator('#tab-settings').click()
+    await expect(page.locator('#bmr-value')).toHaveText('1779')
+    await expect(page.locator('#tdee-value')).toHaveText('2757')
+    await expect(page.locator('#protein-target-result')).toHaveText('65.92')
+    await expect(page.locator('#calorie-target-result')).toHaveText('2257')
+  })
 
-  await page.reload()
-  await expect(page.locator('#consumed-value')).toHaveText('22g')
-  await expect(page.locator('#remaining-value')).toHaveText('48g')
-  await expect(page.locator('[data-entry-name="测试食物 A"]')).toContainText('12g')
-  await expect(page.locator('[data-entry-name="测试食物 B"]')).toContainText('10g')
-  await page.screenshot({ path: path.resolve('evidence/phase1-regression-22g.png'), fullPage: true })
+  await test.step('添加鸡胸肉后蛋白质与热量同步累计', async () => {
+    await page.locator('#tab-foods').click()
+    await fillUniInput(page, '#search-input', '鸡胸肉')
+    await page.locator('[data-food-name="鸡胸肉"]').filter({ hasText: '熟／烤' }).first().click()
+    await fillUniInput(page, '#food-quantity', '150')
+    await expect(page.locator('#food-preview')).toHaveText('46.5g')
+    await expect(page.locator('#calorie-preview')).toHaveText('247.5 kcal')
+    await page.locator('#add-selected-food').click()
+    await page.locator('.close-button').click()
+    await page.locator('#tab-today').click()
+    await expect(page.locator('#consumed-value')).toHaveText('46.5g')
+    await expect(page.locator('#remaining-value')).toHaveText('剩余 19.42g')
+    await expect(page.locator('#calorie-consumed-value')).toHaveText('247.5 kcal')
+    await expect(page.locator('#calorie-remaining-value')).toHaveText('剩余 2009.5 kcal')
+  })
+
+  await test.step('记录体重并完成今日记录', async () => {
+    await fillUniInput(page, '#weight-input', '82.4')
+    await page.locator('#save-weight').click()
+    await page.locator('#complete-day').click()
+    await expect(page.locator('#complete-day')).toHaveText('今日完成 ✓')
+    await expect(page.locator('#trend-weight')).toHaveText('82.4')
+    await expect(page.locator('#trend-protein')).toHaveText('71%')
+    await expect(page.locator('#trend-calories')).toHaveText('247.5')
+    await page.waitForTimeout(2500)
+    await page.screenshot({ path: path.resolve('evidence/v2-complete-flow-mobile.png'), fullPage: true })
+  })
+
+  await test.step('刷新后所有核心数据仍存在', async () => {
+    await page.reload()
+    await expect(page.locator('#current-weight')).toHaveText('82.4 kg')
+    await expect(page.locator('#consumed-value')).toHaveText('46.5g')
+    await expect(page.locator('#calorie-consumed-value')).toHaveText('247.5 kcal')
+    await expect(page.locator('[data-entry-name="鸡胸肉"]')).toContainText('46.5g')
+    await expect(page.locator('#complete-day')).toHaveText('今日完成 ✓')
+  })
+
+  expect(pageErrors).toEqual([])
+  expect(failedResponses).toEqual([])
+  expect(consoleErrors).toEqual([])
 })

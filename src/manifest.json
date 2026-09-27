@@ -1,12 +1,15 @@
 {
-  "name": "蛋白质计算器",
+  "name": "蛋白质 + 热量计算器",
   "appid": "__UNI__PROTEIN_LOCAL_MVP",
-  "description": "本地蛋白质记录工具，不提供医疗建议",
-  "versionName": "1.0.0",
-  "versionCode": "100",
+  "description": "本地优先的个人蛋白质、热量与体重记录工具，不提供医疗建议",
+  "versionName": "2.0.0",
+  "versionCode": "200",
   "transformPx": false,
+  "uniStatistics": {
+    "enable": false
+  },
   "h5": {
-    "title": "蛋白质计算器",
+    "title": "衡量｜蛋白质 + 热量",
     "router": {
       "mode": "hash",
       "base": "/"
