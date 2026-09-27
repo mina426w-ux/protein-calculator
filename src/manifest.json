@@ -1,0 +1,15 @@
+{
+  "name": "蛋白质计算器",
+  "appid": "__UNI__PROTEIN_LOCAL_MVP",
+  "description": "本地蛋白质记录工具，不提供医疗建议",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "h5": {
+    "title": "蛋白质计算器",
+    "router": {
+      "mode": "hash",
+      "base": "/"
+    }
+  }
+}

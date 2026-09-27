@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.vite/
+test-results/
+playwright-report/
+evidence/
+.npmrc
+本地运行说明__LOCAL_RUN_GUIDE.md
+.env
+.env.*
+!.env.example
+*.zip
+*.log
