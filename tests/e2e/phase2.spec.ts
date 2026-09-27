@@ -1,8 +1,20 @@
 import { expect, test, type Page } from '@playwright/test'
 import path from 'node:path'
 
+test.beforeEach(async ({ page }) => {
+  await page.route('https://cdn.dcloud.net.cn/img/shadow-grey.png', (route) => route.fulfill({
+    contentType: 'image/png',
+    body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64'),
+  }))
+})
+
 async function fillUniInput(page: Page, id: string, value: string) {
-  await page.locator(`${id} input`).fill(value, { force: true })
+  const input = page.locator(`${id} input`)
+  await expect(input).toBeVisible()
+  await input.tap()
+  await expect(input).toBeFocused()
+  await input.fill(value)
+  await expect(input).toHaveValue(value)
 }
 
 async function setupProfile(page: Page) {

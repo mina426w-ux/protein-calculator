@@ -1,8 +1,20 @@
 import { expect, test, type Page } from '@playwright/test'
 import path from 'node:path'
 
+test.beforeEach(async ({ page }) => {
+  await page.route('https://cdn.dcloud.net.cn/img/shadow-grey.png', (route) => route.fulfill({
+    contentType: 'image/png',
+    body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64'),
+  }))
+})
+
 async function fillUniInput(page: Page, id: string, value: string) {
-  await page.locator(`${id} input`).fill(value, { force: true })
+  const input = page.locator(`${id} input`)
+  await expect(input).toBeVisible()
+  await input.tap()
+  await expect(input).toBeFocused()
+  await input.fill(value)
+  await expect(input).toHaveValue(value)
 }
 
 test('GitHub Pages V2 公网闭环与刷新持久化', async ({ page }) => {
@@ -22,10 +34,13 @@ test('GitHub Pages V2 公网闭环与刷新持久化', async ({ page }) => {
   await fillUniInput(page, '#profile-height', '180')
   await fillUniInput(page, '#profile-weight', '82.4')
   await fillUniInput(page, '#profile-target-weight', '75')
+  await fillUniInput(page, '#profile-body-fat', '22.5')
   await page.locator('#activity-moderate').click()
   await page.locator('#goal-lose').click()
+  await page.locator('#protein-custom').click()
+  await fillUniInput(page, '#custom-protein-target', '100')
   await page.locator('#save-profile').click()
-  await expect(page.locator('#target-value')).toHaveText('65.92g')
+  await expect(page.locator('#target-value')).toHaveText('100g')
 
   await page.locator('#tab-foods').click()
   await fillUniInput(page, '#search-input', '鸡胸肉')
